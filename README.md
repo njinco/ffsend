@@ -39,6 +39,7 @@ Find out more about security [here](#security).
 - [Install](#install) ([Linux](#linux-all-distributions), [macOS](#macos), [Windows](#windows), [FreeBSD](#freebsd), [Android](#android), [_Other OS/architecture_](#other-os-or-architecture))
 - [Build](#build)
 - [Configuration and environment](#configuration-and-environment)
+- [Personal setup for send.enkiel.org](docs/enkiel-setup.md)
 - [Security](#security)
 - [Help](#help)
 - [Special thanks](#special-thanks)
