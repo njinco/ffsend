@@ -133,10 +133,16 @@ Auth at a proxy. It is distinct from a file's optional download password.
 
 The repository also has an offline Send v3 upload check. From the repository
 root, run `cargo test --locked --test send3_upload`. It starts a WebSocket server
-on your computer and tests small and chunked uploads plus a server rejection.
+on your computer and tests small and chunked uploads, proxy authentication, and
+a server rejection.
 It checks the encrypted upload frames without creating a share on your site.
 GitHub Actions runs these checks through `cargo test --locked`. The live round
 trip below additionally checks your deployed server and download path.
+
+This fork keeps its Send API dependency in `vendor/ffsend-api/` so its Send v3
+WebSocket client can be maintained here. The local changes and source version
+are listed in `vendor/ffsend-api/VENDORED.md`. A regular `cargo update` will not
+replace that local copy.
 
 Run this only after the service is reachable. It uploads a disposable text file
 for five minutes, downloads it to a temporary directory, and compares the two

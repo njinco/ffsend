@@ -12,7 +12,11 @@ use tungstenite::{
     Message,
 };
 
-fn upload_to_test_server(contents: &[u8], accepted: bool) -> (std::process::Output, usize) {
+fn upload_to_test_server(
+    contents: &[u8],
+    accepted: bool,
+    basic_auth: bool,
+) -> (std::process::Output, usize) {
     let server = TcpListener::bind("127.0.0.1:0").expect("bind test WebSocket server");
     let address = server.local_addr().expect("test server address");
     let host = format!("http://{}/", address);
@@ -22,6 +26,11 @@ fn upload_to_test_server(contents: &[u8], accepted: bool) -> (std::process::Outp
         let mut socket = accept_hdr(stream, |request: &Request, mut response: Response| {
             assert_eq!(request.uri().path(), "/api/ws");
             assert_eq!(request.headers()["Sec-WebSocket-Protocol"], "ffsend");
+            if basic_auth {
+                assert_eq!(request.headers()["Authorization"], "Basic dXNlcjpwYXNz");
+            } else {
+                assert!(!request.headers().contains_key("Authorization"));
+            }
             response
                 .headers_mut()
                 .insert("Sec-WebSocket-Protocol", HeaderValue::from_static("ffsend"));
@@ -73,7 +82,8 @@ fn upload_to_test_server(contents: &[u8], accepted: bool) -> (std::process::Outp
     let directory = tempfile::tempdir().expect("create test directory");
     let source = directory.path().join("upload.txt");
     fs::write(&source, contents).expect("write upload data");
-    let output = Command::new(env!("CARGO_BIN_EXE_ffsend"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_ffsend"));
+    command
         .args([
             "--api",
             "3",
@@ -89,8 +99,11 @@ fn upload_to_test_server(contents: &[u8], accepted: bool) -> (std::process::Outp
         .env_remove("FFSEND_SHORTEN")
         .env_remove("FFSEND_OPEN")
         .env_remove("FFSEND_COPY")
-        .output()
-        .expect("run ffsend upload");
+        .env_remove("FFSEND_BASIC_AUTH");
+    if basic_auth {
+        command.args(["--basic-auth", "user:pass"]);
+    }
+    let output = command.output().expect("run ffsend upload");
     let chunks = server_thread.join().expect("test server thread");
     (output, chunks)
 }
@@ -98,7 +111,7 @@ fn upload_to_test_server(contents: &[u8], accepted: bool) -> (std::process::Outp
 #[test]
 fn send3_upload_sends_encrypted_chunks_and_returns_a_link() {
     let contents = "distinctive-test-plaintext".repeat(10_000);
-    let (output, chunks) = upload_to_test_server(contents.as_bytes(), true);
+    let (output, chunks) = upload_to_test_server(contents.as_bytes(), true, false);
     assert!(
         output.status.success(),
         "{}",
@@ -113,7 +126,7 @@ fn send3_upload_sends_encrypted_chunks_and_returns_a_link() {
 
 #[test]
 fn send3_upload_accepts_a_small_file() {
-    let (output, chunks) = upload_to_test_server(b"distinctive-test-plaintext", true);
+    let (output, chunks) = upload_to_test_server(b"distinctive-test-plaintext", true, false);
     assert!(
         output.status.success(),
         "{}",
@@ -125,7 +138,17 @@ fn send3_upload_accepts_a_small_file() {
 
 #[test]
 fn send3_upload_rejects_a_failed_server_status() {
-    let (output, _) = upload_to_test_server(b"distinctive-test-plaintext", false);
+    let (output, _) = upload_to_test_server(b"distinctive-test-plaintext", false, false);
     assert!(!output.status.success());
     assert!(!String::from_utf8_lossy(&output.stdout).contains("/download/testfile123#"));
+}
+
+#[test]
+fn send3_upload_preserves_proxy_basic_auth() {
+    let (output, _) = upload_to_test_server(b"distinctive-test-plaintext", true, true);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
