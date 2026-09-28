@@ -51,6 +51,9 @@ the upstream release. The installer refuses to replace an existing
 `$HOME/.local/bin` to that shell's `PATH`. You can also run it by its full
 path: `$HOME/.local/bin/ffsend`.
 
+Running `ffsend` without arguments prints the version and this fork's URL.
+Run `ffsend --help` for commands and options.
+
 The installer accepts an optional absolute prefix for testing or a separate
 user-local location: `bash scripts/install-enkiel.sh /absolute/prefix`. The
 wrapper is then installed in that prefix's `bin` directory. Set

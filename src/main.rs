@@ -27,8 +27,6 @@ mod progress;
 mod urlshorten;
 mod util;
 
-use std::process;
-
 use crate::action::debug::Debug;
 use crate::action::delete::Delete;
 use crate::action::download::Download;
@@ -46,7 +44,7 @@ use crate::cmd::{
     Handler,
 };
 use crate::error::Error;
-use crate::util::{bin_name, highlight, quit_error, ErrorHints};
+use crate::util::{quit_error, ErrorHints};
 
 /// Application entrypoint.
 fn main() {
@@ -159,24 +157,7 @@ fn invoke_action(handler: &Handler) -> Result<(), Error> {
 
 /// Print the main info, shown when no subcommands were supplied.
 pub fn print_main_info() -> ! {
-    // Get the name of the used executable
-    let bin = bin_name();
-
-    // Print the main info
     println!("{} {}", crate_name!(), crate_version!());
-    println!("Usage: {} [FLAGS] <SUBCOMMAND> ...", bin);
-    println!();
-    println!(crate_description!());
-    println!();
-    println!("Missing subcommand. Here are the most used:");
-    println!("    {}", highlight(&format!("{} upload <FILE> ...", bin)));
-    println!("    {}", highlight(&format!("{} download <URL> ...", bin)));
-    println!();
-    println!("To show all subcommands, features and other help:");
-    println!("    {}", highlight(&format!("{} help [SUBCOMMAND]", bin)));
-    println!();
-    println!("The default public Send host is provided by Tim Visee.");
-    println!("Please consider to donate and help keep it running: https://vis.ee/donate");
-
-    process::exit(1)
+    println!("Fork: https://github.com/njinco/ffsend");
+    std::process::exit(0)
 }
