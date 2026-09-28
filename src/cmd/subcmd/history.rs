@@ -10,6 +10,12 @@ impl CmdHistory {
             .visible_alias("h")
             .alias("ls")
             .arg(
+                Arg::with_name("active")
+                    .long("active")
+                    .conflicts_with_all(&["rm", "clear"])
+                    .help("Show only uploads still available on their Send server"),
+            )
+            .arg(
                 Arg::with_name("rm")
                     .long("rm")
                     .short("R")

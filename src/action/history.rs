@@ -1,7 +1,9 @@
 use clap::ArgMatches;
 use failure::Fail;
+use ffsend_api::action::exists::{Error as ExistsError, Exists as ApiExists};
 use prettytable::{format::FormatBuilder, Cell, Row, Table};
 
+use crate::client::create_config;
 use crate::cmd::matcher::{history::HistoryMatcher, main::MainMatcher, Matcher};
 use crate::error::ActionError;
 use crate::history::{History as HistoryManager, LoadError as HistoryLoadError};
@@ -92,6 +94,26 @@ impl<'a> History<'a> {
         let mut files = history.files().clone();
         files.sort_by(|a, b| b.expire_at().cmp(&a.expire_at()));
 
+        if matcher_history.active() {
+            let client = create_config(&matcher_main).client(false);
+            let mut active_files = Vec::new();
+            for file in files {
+                let response = ApiExists::new(&file)
+                    .invoke(&client)
+                    .map_err(|err| ActionError::History(Error::Check(err)))?;
+                if response.exists() {
+                    active_files.push(file);
+                }
+            }
+            files = active_files;
+            if files.is_empty() {
+                if !matcher_main.quiet() {
+                    eprintln!("No active files in history");
+                }
+                return Ok(());
+            }
+        }
+
         // Log a history table, or just the URLs in quiet mode
         if !matcher_main.quiet() {
             // Build the list of column names
@@ -147,6 +169,10 @@ pub enum Error {
     /// Failed to load the history.
     #[fail(display = "Failed to load file history")]
     Load(#[cause] HistoryLoadError),
+
+    /// Failed to check whether a saved upload is still available.
+    #[fail(display = "failed to check a saved upload")]
+    Check(#[cause] ExistsError),
 }
 
 impl From<HistoryLoadError> for ActionError {

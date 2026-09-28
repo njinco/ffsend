@@ -60,6 +60,12 @@ minutes. Set `--download-limit` and `--expiry-time` for a different limit on a
 particular upload, for example `ffsend upload --download-limit 2 --expiry-time
 1h FILE`.
 
+Use `ffsend history --active` to list saved links that are still available.
+This checks each saved link against its Send server without downloading the
+file or changing local history. An unreachable server causes an error, so it
+cannot make a link look expired. Links created on another device are not in
+this computer's local history.
+
 The installer accepts an optional absolute prefix for testing or a separate
 user-local location: `bash scripts/install-enkiel.sh /absolute/prefix`. The
 wrapper is then installed in that prefix's `bin` directory. Set

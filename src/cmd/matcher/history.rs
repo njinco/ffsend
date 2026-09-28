@@ -13,6 +13,11 @@ pub struct HistoryMatcher<'a> {
 }
 
 impl<'a> HistoryMatcher<'a> {
+    /// Check whether only currently available uploads should be shown.
+    pub fn active(&self) -> bool {
+        self.matches.is_present("active")
+    }
+
     /// Check whether to clear all history.
     pub fn clear(&self) -> bool {
         self.matches.is_present("clear")
