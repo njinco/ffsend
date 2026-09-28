@@ -131,6 +131,13 @@ Auth at a proxy. It is distinct from a file's optional download password.
 
 ## 4. Try a harmless round trip
 
+The repository also has an offline Send v3 upload check. From the repository
+root, run `cargo test --locked --test send3_upload`. It starts a WebSocket server
+on your computer and tests small and chunked uploads plus a server rejection.
+It checks the encrypted upload frames without creating a share on your site.
+GitHub Actions runs these checks through `cargo test --locked`. The live round
+trip below additionally checks your deployed server and download path.
+
 Run this only after the service is reachable. It uploads a disposable text file
 for five minutes, downloads it to a temporary directory, and compares the two
 copies. This creates a real upload on your service.
