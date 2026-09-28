@@ -28,7 +28,7 @@ _No demo visible here? View it on [asciinema][usage-demo-asciinema]._
 
 All files are always encrypted on the client, and secrets are never shared with
 the remote host. An optional password may be specified, and a default file
-lifetime of 1 (up to 20) download or 24 hours is enforced to ensure your stuff
+lifetime of 1 (up to 20) download or 5 minutes is enforced to ensure your stuff
 does not remain online forever.
 This provides a secure platform to share your files.
 Find out more about security [here](#security).

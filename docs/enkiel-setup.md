@@ -55,6 +55,11 @@ Running `ffsend` without arguments prints the version, this fork's URL, and
 quick-start upload and download commands. Run `ffsend --help` for all commands
 and options.
 
+An ordinary `ffsend upload FILE` allows one download and expires after five
+minutes. Set `--download-limit` and `--expiry-time` for a different limit on a
+particular upload, for example `ffsend upload --download-limit 2 --expiry-time
+1h FILE`.
+
 The installer accepts an optional absolute prefix for testing or a separate
 user-local location: `bash scripts/install-enkiel.sh /absolute/prefix`. The
 wrapper is then installed in that prefix's `bin` directory. Set

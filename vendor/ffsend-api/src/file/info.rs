@@ -53,9 +53,10 @@ impl FileInfo {
         metadata: String,
         key_set: &KeySet,
     ) -> Self {
+        let default_downloads = config::downloads_default(crate::api::Version::V3, false) as u8;
         Self {
             expire: expire.unwrap_or(config::SEND_DEFAULT_EXPIRE_TIME),
-            download_limit,
+            download_limit: Some(download_limit.unwrap_or(default_downloads)),
             metadata,
             auth: format!("send-v1 {}", key_set.auth_key_encoded().unwrap()),
             _firefox_user: None,
