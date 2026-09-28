@@ -21,7 +21,7 @@ pub struct FileInfo {
     /// Must be in any of these bounds:
     /// - Not authenticated: `[0, 20]`
     /// - Authenticated: `[0, 200]`
-    #[serde(rename = "dlimit")]
+    #[serde(rename = "dlimit", skip_serializing_if = "Option::is_none")]
     download_limit: Option<u8>,
 
     /// File metadata.

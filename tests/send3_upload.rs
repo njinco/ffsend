@@ -44,6 +44,10 @@ fn upload_to_test_server(
         };
         assert!(metadata.contains("\"fileMetadata\""));
         assert!(metadata.contains("\"authorization\""));
+        assert!(
+            !metadata.contains("\"dlimit\""),
+            "the default download limit must be omitted so the server applies its default"
+        );
         assert!(!metadata.contains("distinctive-test-plaintext"));
         socket
             .send(Message::Text(
