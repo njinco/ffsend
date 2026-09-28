@@ -21,7 +21,6 @@ use crate::config::INFER_COMMANDS;
 use crate::config::{CLIENT_TIMEOUT, CLIENT_TRANSFER_TIMEOUT};
 #[cfg(feature = "history")]
 use crate::util::app_history_file_path_string;
-#[cfg(feature = "infer-command")]
 use crate::util::bin_name;
 use crate::util::parse_duration;
 
