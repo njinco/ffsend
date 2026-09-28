@@ -12,40 +12,59 @@ server.
 
 ## 1. Install the terminal command
 
-On Linux x86_64, this personal fork provides a pinned installer. It downloads
-the official v0.2.77 static binary, checks its SHA-256 against the copy used in
-the successful September 2026 round trip, and installs it under
-`~/.local/lib/ffsend-enkiel/`. It installs a small `~/.local/bin/ffsend` wrapper
-that selects `https://send.enkiel.org/` as the upload default. It does not use
-`sudo`, modify your shell startup files, or deploy the Send server.
+On Linux x86_64, the personal installer builds the committed source in this
+fork with the locked dependencies, then installs that binary under
+`~/.local/lib/ffsend-enkiel/`. The `~/.local/bin/ffsend` wrapper selects
+`https://send.enkiel.org/` as the upload default. The installer does not use
+`sudo`, modify your shell startup files, or deploy the Send server. It needs
+Rust stable with Cargo, `pkg-config`, and OpenSSL development libraries to
+build. The resulting binary uses the system OpenSSL libraries at runtime.
 
 From the root of this repository:
 
 ```bash
+git status --short
+git rev-parse --short=12 HEAD
 bash scripts/install-enkiel.sh
 command -v ffsend
 ffsend --version
+sed -n '5p' "$HOME/.local/bin/ffsend"
 ```
 
-The installer refuses to replace an existing `~/.local/bin/ffsend` unless it
-was created by this installer. If `command -v` cannot find the new wrapper,
-start a new terminal or add `$HOME/.local/bin` to that shell's `PATH`. You can
-also run it by its full path: `$HOME/.local/bin/ffsend`.
+The first command should print nothing: the installer requires a clean
+checkout so the installed filename identifies its exact source commit. The
+last command shows which binary the wrapper runs. It should contain
+`ffsend-fork-` followed by the commit prefix. The project version remains
+`0.2.77`, so `ffsend --version` alone cannot distinguish the fork build from
+the upstream release. The installer refuses to replace an existing
+`~/.local/bin/ffsend` unless it was created by this installer. If
+`command -v` cannot find the wrapper, start a new terminal or add
+`$HOME/.local/bin` to that shell's `PATH`. You can also run it by its full
+path: `$HOME/.local/bin/ffsend`.
 
 The installer accepts an optional absolute prefix for testing or a separate
 user-local location: `bash scripts/install-enkiel.sh /absolute/prefix`. The
-wrapper is then installed in that prefix's `bin` directory. The pinned hash is
-for the exact release asset; an unexpected upstream asset change makes the
-installer stop rather than run new bytes.
+wrapper is then installed in that prefix's `bin` directory. Set
+`CARGO_TARGET_DIR` if you want the build files outside the checkout. The
+installer preserves the previously installed official v0.2.77 binary. To
+switch the wrapper back to that verified binary, run:
+
+```bash
+bash scripts/install-enkiel.sh --rollback
+```
+
+Rollback checks the official binary's pinned SHA-256 before switching. It
+does not need Cargo. Run the installer again from a clean checkout to return
+to the fork build.
 
 For other operating systems and architectures, see the main [installation
 guide](../README.md#install). On those systems, use the host setting in the
 next section explicitly until a platform-specific wrapper is available.
 
 To remove this personal installation, after confirming these are the files
-created by the script, remove `~/.local/bin/ffsend` and
-`~/.local/lib/ffsend-enkiel/ffsend-v0.2.77`. This does not delete your local
-`ffsend` history or uploads already stored on the server.
+created by the script, remove `~/.local/bin/ffsend` and the installed binaries
+under `~/.local/lib/ffsend-enkiel/`. This does not delete your local `ffsend`
+history or uploads already stored on the server.
 
 ## 2. Check the prerequisites
 
@@ -73,10 +92,11 @@ These checks do not prove that file transfers work.
 On September 28, 2026, a live check from this workspace returned HTTP `200`,
 reported API version `3`, and completed an 18-byte upload/download round trip
 with matching contents. The transfer used a temporary copy of the official
-`ffsend` v0.2.77 Linux binary. It did not install the client system-wide or
-validate the production container configuration. A second round trip using the
-installed wrapper also passed without `--host`, even with a conflicting
-inherited `FFSEND_HOST` value. Both test uploads had five-minute expiry.
+`ffsend` v0.2.77 Linux binary. A second round trip using the installed wrapper
+also passed without `--host`, even with a conflicting inherited
+`FFSEND_HOST` value. Both test uploads had five-minute expiry. After the fork
+locked `tar` at 0.4.46, its release build also completed a live archive upload,
+download, extraction, and content comparison.
 
 ## 3. Select your host
 

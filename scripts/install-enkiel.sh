@@ -1,34 +1,37 @@
 #!/usr/bin/env bash
-# Install the verified upstream CLI with send.enkiel.org as the upload default.
+# Build this checkout and install it with send.enkiel.org as the upload default.
 set -euo pipefail
 
-version=0.2.77
-asset=ffsend-v${version}-linux-x64-static
-expected_sha256=ebd14a67c46e7d744ce84677f057d9dc07abc884eaa8f70d68a9e59d27357313
-download_url=https://github.com/timvisee/ffsend/releases/download/v${version}/${asset}
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+mode=install
+if [[ ${1:-} == --rollback ]]; then
+  mode=rollback
+  shift
+fi
 install_prefix=${1:-"$HOME/.local"}
 core_dir=$install_prefix/lib/ffsend-enkiel
-core_path=$core_dir/ffsend-v${version}
 bin_dir=$install_prefix/bin
 wrapper_path=$bin_dir/ffsend
 marker='# Managed by ffsend scripts/install-enkiel.sh'
+upstream_path=$core_dir/ffsend-v0.2.77
+upstream_sha256=ebd14a67c46e7d744ce84677f057d9dc07abc884eaa8f70d68a9e59d27357313
 
 if [[ $# -gt 1 || $install_prefix != /* ]]; then
-  printf 'Usage: %s [absolute-install-prefix]\n' "$0" >&2
+  printf 'Usage: %s [--rollback] [absolute-install-prefix]\n' "$0" >&2
   exit 2
 fi
 if [[ $(uname -s) != Linux || $(uname -m) != x86_64 ]]; then
   printf 'This installer supports Linux x86_64 only. See README.md for other systems.\n' >&2
   exit 2
 fi
-for command_name in curl sha256sum install mktemp; do
+for command_name in git sha256sum install mktemp; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     printf 'Missing required command: %s\n' "$command_name" >&2
     exit 2
   fi
 done
-if [[ -L $wrapper_path || -L $core_path ]]; then
-  printf 'Refusing to replace a symbolic link in %s or %s\n' "$wrapper_path" "$core_path" >&2
+if [[ -L $wrapper_path || -L $core_dir ]]; then
+  printf 'Refusing to replace a symbolic link in %s or %s\n' "$wrapper_path" "$core_dir" >&2
   exit 1
 fi
 if [[ -e $wrapper_path ]]; then
@@ -38,38 +41,74 @@ if [[ -e $wrapper_path ]]; then
     exit 1
   fi
 fi
-if [[ -e $core_path ]]; then
-  core_hash=$(sha256sum "$core_path")
-  if [[ ${core_hash%% *} != "$expected_sha256" ]]; then
-    printf 'Refusing to replace a different binary at %s\n' "$core_path" >&2
+
+if [[ $mode == rollback ]]; then
+  if [[ ! -f $upstream_path || -L $upstream_path ]]; then
+    printf 'Verified upstream fallback is missing: %s\n' "$upstream_path" >&2
     exit 1
   fi
+  core_hash=$(sha256sum "$upstream_path")
+  if [[ ${core_hash%% *} != "$upstream_sha256" ]]; then
+    printf 'Upstream fallback checksum did not match.\n' >&2
+    exit 1
+  fi
+  core_path=$upstream_path
+else
+  cargo_bin=${CARGO:-cargo}
+  if ! command -v "$cargo_bin" >/dev/null 2>&1; then
+    printf 'Cargo is required to build this checkout. Install Rust stable first.\n' >&2
+    exit 2
+  fi
+  if [[ -n $(git -C "$repo_root" status --porcelain) ]]; then
+    printf 'Commit or remove checkout changes before installing a named fork build.\n' >&2
+    exit 1
+  fi
+  commit=$(git -C "$repo_root" rev-parse --verify HEAD)
+  build_target_dir=${CARGO_TARGET_DIR:-"$repo_root/target"}
+  if [[ $build_target_dir != /* ]]; then
+    build_target_dir=$repo_root/$build_target_dir
+  fi
+  (
+    cd -- "$repo_root"
+    CARGO_TARGET_DIR=$build_target_dir "$cargo_bin" build --release --locked
+  )
+  built_binary=$build_target_dir/release/ffsend
+  if [[ $("$built_binary" --version) != 'ffsend 0.2.77' ]]; then
+    printf 'Built binary reported an unexpected version.\n' >&2
+    exit 1
+  fi
+  core_path=$core_dir/ffsend-fork-${commit:0:12}
+  built_hash=$(sha256sum "$built_binary")
+  if [[ -L $core_path ]]; then
+    printf 'Refusing to replace symbolic link %s\n' "$core_path" >&2
+    exit 1
+  fi
+  if [[ -e $core_path ]]; then
+    core_hash=$(sha256sum "$core_path")
+    if [[ ${core_hash%% *} != "${built_hash%% *}" ]]; then
+      printf 'A different binary already exists for commit %s\n' "$commit" >&2
+      exit 1
+    fi
+  fi
+  mkdir -p -- "$core_dir"
+  temp_core=$(mktemp "$core_dir/.ffsend-fork.XXXXXX")
+  trap 'rm -f -- "$temp_core"' EXIT
+  install -m 0755 -- "$built_binary" "$temp_core"
+  mv -f -- "$temp_core" "$core_path"
 fi
 
-temp_dir=$(mktemp -d)
-trap 'rm -rf -- "$temp_dir"' EXIT
-curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
-  --retry 3 --max-time 120 --output "$temp_dir/$asset" "$download_url"
-printf '%s  %s\n' "$expected_sha256" "$temp_dir/$asset" | sha256sum --check --status || {
-  printf 'Downloaded binary checksum did not match the pinned release.\n' >&2
-  exit 1
-}
-chmod 700 "$temp_dir/$asset"
-if [[ $("$temp_dir/$asset" --version) != "ffsend $version" ]]; then
-  printf 'Downloaded binary reported an unexpected version.\n' >&2
-  exit 1
-fi
-
-mkdir -p -- "$core_dir" "$bin_dir"
-install -m 0755 -- "$temp_dir/$asset" "$core_path"
+mkdir -p -- "$bin_dir"
+temp_wrapper=$(mktemp "$bin_dir/.ffsend.XXXXXX")
+trap 'rm -f -- "$temp_wrapper"' EXIT
 printf -v quoted_core '%q' "$core_path"
 {
   printf '#!/usr/bin/env bash\n%s\n' "$marker"
   printf 'set -euo pipefail\n'
   printf 'export FFSEND_HOST=https://send.enkiel.org/\n'
   printf 'exec %s "$@"\n' "$quoted_core"
-} > "$temp_dir/ffsend"
-install -m 0755 -- "$temp_dir/ffsend" "$wrapper_path"
+} > "$temp_wrapper"
+chmod 0755 "$temp_wrapper"
+mv -f -- "$temp_wrapper" "$wrapper_path"
 
 printf 'Installed %s and host wrapper %s\n' "$core_path" "$wrapper_path"
 printf 'Run: %s --version\n' "$wrapper_path"
