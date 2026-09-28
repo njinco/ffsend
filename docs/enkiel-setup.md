@@ -19,6 +19,15 @@ fork with the locked dependencies, then installs that binary under
 `sudo`, modify your shell startup files, or deploy the Send server. It needs
 Rust stable with Cargo, `pkg-config`, and OpenSSL development libraries to
 build. The resulting binary uses the system OpenSSL libraries at runtime.
+The installer finds Cargo on `PATH` or at `~/.cargo/bin/cargo` (or
+`$CARGO_HOME/bin/cargo` if you set `CARGO_HOME`). If you keep a toolchain
+elsewhere, set `CARGO=/absolute/path/to/cargo` when running it. When Cargo is
+missing in an interactive terminal, the installer asks whether to install Rust
+stable using the official [rustup](https://rustup.rs/) installer. It downloads
+Rust only after you answer yes and does not modify shell startup files. If you
+answer no, or run it unattended, it prints the setup URL and exits. Cargo may
+still be absent from your shell's `PATH`; the installer can use it from
+`~/.cargo/bin/cargo` on later runs.
 
 From the root of this repository:
 

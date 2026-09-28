@@ -54,16 +54,52 @@ if [[ $mode == rollback ]]; then
   fi
   core_path=$upstream_path
 else
-  cargo_bin=${CARGO:-cargo}
-  if ! command -v "$cargo_bin" >/dev/null 2>&1; then
-    printf 'Cargo is required to build this checkout. Install Rust stable first.\n' >&2
-    exit 2
-  fi
   if [[ -n $(git -C "$repo_root" status --porcelain) ]]; then
     printf 'Commit or remove checkout changes before installing a named fork build.\n' >&2
     exit 1
   fi
   commit=$(git -C "$repo_root" rev-parse --verify HEAD)
+  cargo_home=${CARGO_HOME:-"$HOME/.cargo"}
+  if [[ -n ${CARGO:-} ]]; then
+    cargo_bin=$CARGO
+  elif command -v cargo >/dev/null 2>&1; then
+    cargo_bin=$(command -v cargo)
+  elif [[ -x $cargo_home/bin/cargo ]]; then
+    cargo_bin=$cargo_home/bin/cargo
+  else
+    printf 'Cargo was not found on PATH or at %s/bin/cargo.\n' "$cargo_home" >&2
+    if [[ -t 0 && -t 2 ]]; then
+      printf 'Install Rust stable from https://rustup.rs/ into %s and %s? [y/N] ' \
+        "$cargo_home" "${RUSTUP_HOME:-$HOME/.rustup}" >&2
+      IFS= read -r answer || answer=
+      case $answer in
+        y|Y|yes|YES|Yes) ;;
+        *) printf 'Install Rust from https://rustup.rs/ and rerun this script.\n' >&2; exit 2 ;;
+      esac
+      if ! command -v curl >/dev/null 2>&1; then
+        printf 'curl is required to download the official Rust installer.\n' >&2
+        exit 2
+      fi
+      rustup_script=$(mktemp)
+      trap 'rm -f -- "$rustup_script"' EXIT
+      curl --proto '=https' --tlsv1.2 -fsS https://sh.rustup.rs -o "$rustup_script"
+      sh "$rustup_script" -y --no-modify-path --default-toolchain stable
+      rm -f -- "$rustup_script"
+      trap - EXIT
+      cargo_bin=$cargo_home/bin/cargo
+    else
+      printf 'Install Rust stable from https://rustup.rs/ and rerun this script.\n' >&2
+      exit 2
+    fi
+  fi
+  if ! command -v "$cargo_bin" >/dev/null 2>&1; then
+    printf 'Cargo executable not found: %s\n' "$cargo_bin" >&2
+    exit 2
+  fi
+  if ! "$cargo_bin" --version >/dev/null 2>&1; then
+    printf 'Cargo could not run: %s. Check the Rust toolchain installation.\n' "$cargo_bin" >&2
+    exit 2
+  fi
   build_target_dir=${CARGO_TARGET_DIR:-"$repo_root/target"}
   if [[ $build_target_dir != /* ]]; then
     build_target_dir=$repo_root/$build_target_dir
