@@ -1,12 +1,12 @@
-[![Build status on GitLab CI][gitlab-ci-master-badge]][gitlab-ci-link]
+[![Rust checks][github-checks-badge]][github-checks-link]
 [![Newest release on crates.io][crate-version-badge]][crate-link]
 [![Project license][crate-license-badge]](LICENSE)
 
 [crate-license-badge]: https://img.shields.io/crates/l/ffsend.svg
 [crate-link]: https://crates.io/crates/ffsend
 [crate-version-badge]: https://img.shields.io/crates/v/ffsend.svg
-[gitlab-ci-link]: https://gitlab.com/timvisee/ffsend/pipelines
-[gitlab-ci-master-badge]: https://gitlab.com/timvisee/ffsend/badges/master/pipeline.svg
+[github-checks-link]: https://github.com/njinco/ffsend/actions/workflows/check.yml
+[github-checks-badge]: https://github.com/njinco/ffsend/actions/workflows/check.yml/badge.svg
 
 *Notice: the default Send host is provided by [@timvisee][timvisee]
 ([info](https://gitlab.com/timvisee/ffsend/-/issues/111)).
