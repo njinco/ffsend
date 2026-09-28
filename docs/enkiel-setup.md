@@ -29,6 +29,18 @@ answer no, or run it unattended, it prints the setup URL and exits. Cargo may
 still be absent from your shell's `PATH`; the installer can use it from
 `~/.cargo/bin/cargo` on later runs.
 
+To install or update from the latest pushed commit without keeping a checkout,
+run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/njinco/ffsend/master/scripts/install-from-github.sh | bash
+```
+
+This fetches a small bootstrap script from this fork. It clones `master` into a
+temporary directory, prints the selected commit, and runs the same installer
+described below. You can read [the bootstrap script](../scripts/install-from-github.sh)
+before running it. The temporary checkout is removed when installation ends.
+
 From the root of this repository:
 
 ```bash
@@ -81,9 +93,10 @@ Rollback checks the official binary's pinned SHA-256 before switching. It
 does not need Cargo. Run the installer again from a clean checkout to return
 to the fork build.
 
-For other operating systems and architectures, see the main [installation
-guide](../README.md#install). On those systems, use the host setting in the
-next section explicitly until a platform-specific wrapper is available.
+For other operating systems and architectures, see the [original ffsend
+installation guide](https://github.com/timvisee/ffsend#install). On those
+systems, use the host setting in the next section explicitly until a
+platform-specific wrapper is available.
 
 To remove this personal installation, after confirming these are the files
 created by the script, remove `~/.local/bin/ffsend` and the installed binaries
