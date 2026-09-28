@@ -1,7 +1,7 @@
 [package]
 name = "ffsend"
 version = "0.2.77"
-rust-version = "1.63.0"
+rust-version = "1.85.0"
 authors = ["Tim Visee <3a4fb3964f@sinenomine.email>"]
 license = "GPL-3.0"
 readme = "README.md"
@@ -115,7 +115,7 @@ prettytable-rs = { version = "0.10.0", default-features = false }
 qr2term = { version = "0.2", optional = true }
 rand = "0.8"
 regex = "1.5"
-rpassword = "5"
+rpassword = "7.5.4"
 serde = "1"
 serde_derive = "1"
 tar = { version = "0.4", optional = true }

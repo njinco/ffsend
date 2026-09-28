@@ -1,6 +1,6 @@
 use clap::ArgMatches;
 use ffsend_api::url::Url;
-use rpassword::prompt_password_stderr;
+use rpassword::prompt_password;
 
 use crate::cmd::arg::{ArgGenPassphrase, ArgOwner, ArgPassword, ArgUrl, CmdArgFlag, CmdArgOption};
 use crate::cmd::matcher::{MainMatcher, Matcher};
@@ -44,8 +44,7 @@ impl<'a: 'b, 'b> PasswordMatcher<'a> {
                 // Prompt for the password
                 // TODO: don't unwrap/expect
                 // TODO: create utility function for this
-                prompt_password_stderr("New password: ")
-                    .expect("failed to read password from stdin")
+                prompt_password("New password: ").expect("failed to read password from terminal")
             }
         };
 

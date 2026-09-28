@@ -39,7 +39,7 @@ use fs2::available_space;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use regex::Regex;
-use rpassword::prompt_password_stderr;
+use rpassword::prompt_password as read_password_from_tty;
 #[cfg(feature = "clipboard-bin")]
 use which::which;
 
@@ -539,7 +539,7 @@ pub fn prompt_password(main_matcher: &MainMatcher, optional: bool) -> Option<Str
     } else {
         "Password: "
     };
-    match prompt_password_stderr(prompt) {
+    match read_password_from_tty(prompt) {
         // If optional and nothing is entered, regard it as not defined
         Ok(password) => {
             if password.is_empty() && optional {
