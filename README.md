@@ -146,9 +146,9 @@ all available subcommands.
     - CentOS/Red Hat/openSUSE/Fedora: `yum install xclip`
     - Arch: `pacman -S xclip`
 - Windows specific:
-  - Optional OpenSSL with `crypto-openssl` feature: [» Installer][openssl-windows-installer] (`v1.1.0j` or above)
+  - The default `crypto-openssl` feature requires OpenSSL; see the [rust-openssl Windows setup](https://github.com/sfackler/rust-openssl#windows-msvc).
 - macOS specific:
-  - Optional OpenSSL with `crypto-openssl` feature: `brew install openssl@1.1`
+  - The default `crypto-openssl` feature requires OpenSSL; see the [rust-openssl macOS setup](https://github.com/sfackler/rust-openssl#osx).
 - FreeBSD specific:
   - OpenSSL: `pkg install openssl`
   - CA certificates: `pkg install ca_root_nss`
@@ -446,7 +446,7 @@ before proceeding:
 ### Build requirements
 - Runtime [requirements](#requirements)
 - [`git`][git]
-- [`rust`][rust] `v1.63` (MSRV) or higher (install using [`rustup`][rustup])
+- [`rust`][rust] `v1.85` (MSRV) or higher (install using [`rustup`][rustup])
 - [OpenSSL][openssl] or [LibreSSL][libressl] libraries/headers:
   - Linux:
     - Ubuntu, Debian and derivatives: `apt install build-essential cmake pkg-config libssl-dev`
@@ -456,9 +456,9 @@ before proceeding:
     - Fedora: `dnf install gcc gcc-c++ make cmake openssl-devel`
     - Or see instructions [here](https://github.com/sfackler/rust-openssl#linux)
   - Windows:
-    - Optional with `crypto-openssl` feature: See instructions here [here](https://github.com/sfackler/rust-openssl#windows-msvc)
+    - With the default `crypto-openssl` feature: see the [rust-openssl setup](https://github.com/sfackler/rust-openssl#windows-msvc).
   - macOS:
-    - Optional with `crypto-openssl` feature: `brew install cmake pkg-config openssl` or see instructions [here](https://github.com/sfackler/rust-openssl#osx)
+    - With the default `crypto-openssl` feature: see the [rust-openssl setup](https://github.com/sfackler/rust-openssl#osx).
   - FreeBSD:
     - `pkg install rust gmake pkgconf python36 libxcb xclip ca_root_nss xsel-conrad`
     - It is a better idea to use & modify the existing `ffsend` port, which manages dependencies for you.
@@ -466,7 +466,7 @@ before proceeding:
 ### Compile and install
 Then, walk through one of the following steps to compile and install `ffsend`:
 
-- Compile and install it directly from cargo:
+- Install the published upstream package from cargo (without this fork's changes):
 
   ```bash
   # Compile and install from cargo
@@ -480,28 +480,28 @@ Then, walk through one of the following steps to compile and install `ffsend`:
 
   ```bash
   # Clone the project
-  git clone https://github.com/timvisee/ffsend.git
+  git clone https://github.com/njinco/ffsend.git
   cd ffsend
 
   # Compile and install
-  cargo install --path . -f
+  cargo install --path . --locked -f
 
   # Start using ffsend
   ffsend --help
 
   # or run it directly from cargo
-  cargo run --release -- --help
+  cargo run --release --locked -- --help
   ```
 
 - Or clone the repository and invoke the binary directly (Linux/macOS):
 
   ```bash
   # Clone the project
-  git clone https://github.com/timvisee/ffsend.git
+  git clone https://github.com/njinco/ffsend.git
   cd ffsend
 
   # Build the project (release version)
-  cargo build --release
+  cargo build --release --locked
 
   # Start using ffsend
   ./target/release/ffsend --help
@@ -510,14 +510,14 @@ Then, walk through one of the following steps to compile and install `ffsend`:
 ### Compile features / use flags
 Different use flags are available for `ffsend` to toggle whether to include
 various features.
-The following features are available, some of which are enabled by default:
+The following features are available in this checkout, some of which are enabled by default:
 
 | Feature         | Enabled | Description                                                |
 | :-------------: | :-----: | :--------------------------------------------------------- |
-| `send2`         | Default | Support for Send v2 servers                                |
+| `send2`         |         | Support for Send v2 servers                                |
 | `send3`         | Default | Support for Send v3 servers                                |
-| `crypto-ring`   | Default | Use ring as cryptography backend                           |
-| `crypto-openssl`|         | Use OpenSSL as cryptography backend                        |
+| `crypto-ring`   |         | Use ring as cryptography backend                           |
+| `crypto-openssl`| Default | Use OpenSSL as cryptography backend                        |
 | `clipboard`     | Default | Support for copying links to the clipboard                 |
 | `history`       | Default | Support for tracking files in history                      |
 | `archive`       | Default | Support for archiving and extracting uploads and downloads |
@@ -538,10 +538,10 @@ cargo install --features no-color
 cargo build --release --features no-color
 
 # No default features, except required
-cargo install --no-default-features --features send3,crypto-ring
+cargo install --no-default-features --features send3,crypto-openssl
 
 # With history and clipboard support
-cargo install --no-default--features --features send3,crypto-ring,history,clipboard
+cargo install --no-default-features --features send3,crypto-openssl,history,clipboard
 ```
 
 For Windows systems it is recommended to provide the `no-color` flag, as color
@@ -809,7 +809,6 @@ Check out the [LICENSE](LICENSE) file for more information.
 [libressl]: https://libressl.org/
 [mozilla]: https://mozilla.org/
 [openssl]: https://www.openssl.org/
-[openssl-windows-installer]: https://u.visee.me/dl/openssl/Win64OpenSSL_Light-1_1_0j.exe
 [termux]: https://termux.com/
 [rust]: https://rust-lang.org/
 [rustup]: https://rustup.rs/

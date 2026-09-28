@@ -55,7 +55,7 @@ name = "ffsend"
 path = "src/main.rs"
 
 [features]
-default = ["archive", "clipboard", "crypto-ring", "history", "infer-command", "qrcode", "send3", "urlshorten"]
+default = ["archive", "clipboard", "crypto-openssl", "history", "infer-command", "qrcode", "send3", "urlshorten"]
 
 # Compile with file archiving support
 archive = ["tar"]

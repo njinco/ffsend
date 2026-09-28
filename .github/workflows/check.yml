@@ -31,6 +31,9 @@ jobs:
         run: cargo +stable check --locked
 
       - name: Check minimal Send v3 features
+        run: cargo +stable check --locked --no-default-features --features send3,crypto-openssl
+
+      - name: Check optional ring backend
         run: cargo +stable check --locked --no-default-features --features send3,crypto-ring
 
       - name: Run tests

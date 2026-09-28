@@ -79,6 +79,11 @@ The second command shows the features compiled into your binary. The examples
 below assume the default `history` and `archive` features. If the binary or
 site is unavailable, resolve that before attempting an upload.
 
+The personal fork's default build also shows `crypto-openssl` in this output.
+That is the file encryption backend used by the installed command. The
+`crypto-ring` option remains available for compatibility, but it is not
+compiled into the default binary.
+
 To check whether the service is reachable without uploading anything:
 
 ```bash
