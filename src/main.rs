@@ -159,5 +159,10 @@ fn invoke_action(handler: &Handler) -> Result<(), Error> {
 pub fn print_main_info() -> ! {
     println!("{} {}", crate_name!(), crate_version!());
     println!("Fork: https://github.com/njinco/ffsend");
+    println!();
+    println!("Quick start (replace PATH and SHARE_URL):");
+    println!("  ffsend upload PATH");
+    println!("  ffsend download SHARE_URL");
+    println!("  ffsend --help");
     std::process::exit(0)
 }
