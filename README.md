@@ -38,6 +38,8 @@ ffsend exists 'SHARE_URL'
 
 See [the personal setup guide](docs/enkiel-setup.md) for more commands, testing,
 troubleshooting, and the Send service relationship.
+To have a terminal-capable AI agent install or use this fork, give it the
+[agent setup prompt](docs/agent-setup-prompt.md) with your chosen task filled in.
 
 ## Install or update on Linux
 
